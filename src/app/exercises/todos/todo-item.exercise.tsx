@@ -3,27 +3,24 @@ import {cn} from '@/lib/utils'
 import {Todo} from '@/lib/type'
 import {updateTodo as updateTodoAction} from './actions'
 import {toast} from 'sonner'
+import {useOptimistic, startTransition} from 'react'
 
-// 🐶 Crée 2 types `TodoOptimistic` et `OptimisticFields`
-// `TodoOptimistic` Le type du State de l'optimistic hook (Todo + sending: boolean)
-// `OptimisticFields` Le type des champs en entrée de la fonction de mise à jour de l'optimistic hook (`reducer`)
+type TodoOptimistic = Todo & {
+  sending?: boolean
+}
 
-// 🤖
-// type TodoOptimistic = Todo & {
-//   sending?: boolean
-// }
-
-// type OptimisticFields = {isCompleted: boolean; sending: boolean}
+type OptimisticFields = {isCompleted: boolean; sending: boolean}
 
 export default function TodoItem({todo}: {todo: Todo}) {
-  // 🐶 Utilise l'optimistic hook pour gérer l'état optimiste du `todo`
-  // 🐶 Aide au typage : `useOptimistic<TypeDuState, TypeOptmisticValue>`
-
-  // 🤖 const [optimisticTodo, updateOptimisticTodo] = seOptimistic<TypeDuState, TypeOptmisticValue>(todo, reducer)
-  // 🐶 le `reducer` est une fonction avec 2 params (state, {isCompleted, sending}) qui merge tous les champs (utilise un spread operator)
+  const [optimisticTodo, updateOptimisticTodo] = useOptimistic<
+    TodoOptimistic,
+    OptimisticFields
+  >(todo, (state, {isCompleted, sending}) => {
+    return {...state, isCompleted, sending}
+  })
 
   const handleChange = async (isCompleted: boolean) => {
-    // 🐶 Appelle ici `updateOptimisticTodo` en indiquant `sending` `true`
+    updateOptimisticTodo({isCompleted, sending: true})
     try {
       await updateTodoAction({
         ...todo,
@@ -31,34 +28,35 @@ export default function TodoItem({todo}: {todo: Todo}) {
       })
     } catch (error) {
       toast.error(`Failed to update todo.${error}`)
-    } // 🐶 Appelle ici `updateOptimisticTodo` en indiquant `sending` `false`
+    }
+    updateOptimisticTodo({isCompleted, sending: false})
   }
   return (
     <>
-      {/* 🐶 Remplace tous les `todo` par `optimisticTodo` */}
-      <div className="flex items-center gap-4" key={todo.id}>
+      <div className="flex items-center gap-4" key={optimisticTodo.id}>
         <Checkbox
-          checked={todo.isCompleted}
-          id={`${todo.id}`}
-          // 🐶 Appelle `handleChange` dans `startTransition`
-          onCheckedChange={(checked) => handleChange(checked as boolean)}
+          checked={optimisticTodo.isCompleted}
+          id={`${optimisticTodo.id}`}
+          onCheckedChange={(checked) =>
+            startTransition(() => handleChange(checked as boolean))
+          }
         />
         <label
           className={cn('flex-1 text-sm font-medium', {
-            'line-through': todo.isCompleted,
-            // 🐶 Ajoute la classe `animate-color-cycle` si `sending` est true
+            'line-through': optimisticTodo.isCompleted,
+            'animate-color-cycle': optimisticTodo.sending,
           })}
-          htmlFor={`${todo.id}`}
+          htmlFor={`${optimisticTodo.id}`}
         >
-          {todo.title}
+          {optimisticTodo.title}
         </label>
 
         <span
           className={cn('text-sm text-gray-500 dark:text-gray-400 ', {
-            'line-through': todo.isCompleted,
+            'line-through': optimisticTodo.isCompleted,
           })}
         >
-          {todo.updadtedAt}
+          {optimisticTodo.updadtedAt}
         </span>
       </div>
     </>
