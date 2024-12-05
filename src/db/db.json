@@ -25,6 +25,16 @@
       "category": "furniture",
       "createdAt": "2024-04-25T05:56:06.593Z",
       "updadtedAt": "2024-10-30T10:06:58.759Z"
+    },
+    {
+      "id": "3",
+      "title": "New product",
+      "price": 0,
+      "description": "dfczefezfv",
+      "category": "default",
+      "quantity": 10,
+      "createdAt": "2024-12-05T22:33:13.428Z",
+      "updadtedAt": "2024-12-05T22:45:47.392Z"
     }
   ],
   "todos": [
