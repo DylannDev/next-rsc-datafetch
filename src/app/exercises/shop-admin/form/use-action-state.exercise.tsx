@@ -10,40 +10,42 @@ import {
   Select,
 } from '@/components/ui/select'
 
-import {useRef} from 'react'
+import {useRef, useActionState, useEffect} from 'react'
 import {CategoriesEnum, Product} from '@/lib/type'
-// 🐶 Importe `onSubmitAction` notre action server
-//import {onSubmitAction} from '../actions'
-
-// 🐶 Importe `useActionState`
-//import {useActionState} from 'react'
+import {onSubmitAction} from '../actions'
 import {Label} from '@/components/ui/label'
+import {toast} from 'sonner'
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export default function ProductForm({product}: {product?: Product}) {
-  // 🐶 Utilise le hook `useActionState` pour gérer l'état de notre formulaire
-  // const [state, formAction] = useActionState
-  // 🐶 Passe `onSubmitAction` en premier argument et
-  // {error: false, message: ''} en deuxième argument le state initial
+  const [state, formAction, isPending] = useActionState(onSubmitAction, {
+    error: false,
+    message: '',
+  })
 
   const formRef = useRef<HTMLFormElement>(null)
 
   // 🐶 Utilise `React.useEffect` pour afficher un message en fonction de l'état de notre formulaire et reset le `form`
-  // 🤖 toast.error(state.message) ou toast.success(state.message)
-  // 🤖 handleReset() pour réinitialiser le formulaire
+  useEffect(() => {
+    if (state.error) {
+      toast.error(state.message)
+    } else {
+      toast(state.message)
+      handleReset()
+    }
+  }, [state])
 
-  // const handleReset = () => {
-  //   if (formRef.current) {
-  //     formRef.current.reset()
-  //   }
-  // }
+  const handleReset = () => {
+    if (formRef.current) {
+      formRef.current.reset()
+    }
+  }
   const categories = Object.keys(CategoriesEnum).filter((key) =>
     Number.isNaN(Number(key))
   )
 
   return (
-    // 🐶 Ajoute le prop `action={formAction}`
-    <form ref={formRef} className="gap-2 space-y-4">
+    <form ref={formRef} action={formAction} className="gap-2 space-y-4">
       <Label>Product title</Label>
       <Input placeholder="ex : Iphone" name="title" />
       <Label>Product title</Label>
@@ -67,7 +69,7 @@ export default function ProductForm({product}: {product?: Product}) {
       <Label>Product title</Label>
       <Input type="number" placeholder="Product quantity" name="quantity" />
       <div className="flex gap-2">
-        <Button size="sm" type="submit">
+        <Button size="sm" type="submit" disabled={isPending}>
           Save
         </Button>
         <Button size="sm" variant="outline">

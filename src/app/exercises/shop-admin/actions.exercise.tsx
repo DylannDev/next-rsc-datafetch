@@ -9,6 +9,8 @@ import {revalidatePath} from 'next/cache'
 import {Product} from '@/lib/type'
 import {formSchema} from './schema'
 
+const FormSchemaLight = formSchema.partial({id: true, createdAt: true})
+
 type FormStateSimple = {error: boolean; message: string}
 
 // 🐶 Rappel : Avec `useActionState` l'action server doit avoir 2 paramètres (`state` et `FormData`)
@@ -19,21 +21,22 @@ export async function onSubmitAction(
   //simulate slow server
   await new Promise((resolve) => setTimeout(resolve, 1000))
   console.log('data', data)
-  // 🐶 Valide les données avec `Zod`
-  // 🤖
-  // const formData = Object.fromEntries(data)
-  // const parsed = formSchema.safeParse(formData)
 
-  // 🐶 Si les données ne sont pas valides (`if (!parsed.success)`), retourne un objet de type `FormStateSimple`
-  // 🤖 Aide toi de `logZodError(data)` pour afficher les erreurs
+  const formData = Object.fromEntries(data)
+  const parsed = FormSchemaLight.safeParse(formData)
 
-  // 🐶 Appelle la BDD dans un `try` `catch` avec :
-  // 🤖 await persistProductDao(parsed.data)
-
-  return {error: false, message: 'Success'}
+  if (!parsed.success) {
+    logZodError(data)
+    return {error: true, message: `erreur(s) de validation`}
+  }
+  try {
+    await persistProductDao(parsed.data as Product)
+    return {error: true, message: 'Success'}
+  } catch (error) {
+    return {error: true, message: `server error ${error}`}
+  }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function logZodError(data: FormData) {
   const formData = Object.fromEntries(data)
   const parsed = formSchema.safeParse(formData)

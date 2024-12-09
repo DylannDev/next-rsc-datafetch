@@ -25,6 +25,26 @@
       "category": "furniture",
       "createdAt": "2024-04-25T05:56:06.593Z",
       "updadtedAt": "2024-05-30T02:54:24.636Z"
+    },
+    {
+      "id": "3",
+      "title": "qodhuz",
+      "price": 4,
+      "description": "czedczdvrvefrv",
+      "category": "lighting",
+      "quantity": 5,
+      "createdAt": "2024-12-09T21:07:18.254Z",
+      "updadtedAt": "2024-12-09T21:07:18.254Z"
+    },
+    {
+      "id": "4",
+      "title": "rbrbedrbr",
+      "price": 3,
+      "description": "dbbdebfbdfb",
+      "category": "default",
+      "quantity": 4,
+      "createdAt": "2024-12-09T21:08:44.471Z",
+      "updadtedAt": "2024-12-09T21:08:44.471Z"
     }
   ],
   "todos": [
