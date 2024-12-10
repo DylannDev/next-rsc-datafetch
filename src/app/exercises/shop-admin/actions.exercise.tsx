@@ -7,21 +7,18 @@ import {
 
 import {revalidatePath} from 'next/cache'
 import {Product} from '@/lib/type'
-import {formSchema} from './schema'
+import {formSchema, FormSchemaType} from './schema'
 
-// 🐶 Modifie le type `FormState`  de `onSubmitAction`
-type FormState = {error: boolean; message: string}
-// 🤖
-// type ValidationError = {
-//   field: keyof FormSchemaType
-//   message: string
-// }
+type ValidationError = {
+  field: keyof FormSchemaType
+  message: string
+}
 
-// export type FormState = {
-//   success: boolean
-//   errors?: ValidationError[]
-//   message?: string
-// }
+export type FormState = {
+  success: boolean
+  errors?: ValidationError[]
+  message?: string
+}
 
 export async function onSubmitAction(
   prevState: FormState,
@@ -30,34 +27,30 @@ export async function onSubmitAction(
   await new Promise((resolve) => setTimeout(resolve, 1000))
   const formData = Object.fromEntries(data)
   const parsed = formSchema.safeParse(formData)
+
   if (!parsed.success) {
     logZodError(data)
-    // 🐶 Tu vas devoir ici récupérer toutes les erreurs de `Zod`,
-    // C'est à dire les champs et les messages d'erreurs
 
-    // 🐶 Crée `validationErrors` de type `ValidationError[]`
-    // 🤖 const validationErrors: ValidationError[] = ...
-    // 🐶 Utilise `parsed.error.errors.map(err)` =>  pour parcourir les erreurs
-    // 🐶 Utilise 🤖 `field: err.path[0] as keyof FormSchemaType` pour récupérer le champs
-    // 🐶 Utilise 🤖 `message: zod server error ${err.message}` pour le message
+    const validationErrors: ValidationError[] = parsed.error.errors.map(
+      (error) => ({
+        field: error.path[0] as keyof FormSchemaType,
+        message: `zod server error ${error.message}`,
+      })
+    )
 
-    // 🐶 Retourne ensuite
-    // 🤖
-    // return {
-    //   success: false,
-    //   errors: validationErrors,
-    //   message: 'Server Error',
-    // }
-    return {error: true, message: `erreur(s) de validation`}
+    return {
+      success: false,
+      errors: validationErrors,
+      message: 'Server Error',
+    }
   }
+
   try {
     await persistProductDao(parsed.data as Product)
     revalidatePath('/exercises/shop-admin')
-    // 🐶 Retourne le bon type
-    return {error: false, message: 'Success'}
+    return {success: true, message: 'Product saved successfully'}
   } catch (error) {
-    // 🐶 Retourne le bon type
-    return {error: true, message: `Server Error ${error}`}
+    return {success: false, message: `Server Error ${error}`}
   }
 }
 
